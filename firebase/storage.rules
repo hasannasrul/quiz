@@ -1,0 +1,19 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isAdmin() {
+      return signedIn() &&
+        firestore.exists(/databases/(default)/documents/Users/$(request.auth.uid)) &&
+        firestore.get(/databases/(default)/documents/Users/$(request.auth.uid)).data.roles.admin == true;
+    }
+
+    // Only admins can upload question images.
+    match /question-images/{userId}/{fileName} {
+      allow read: if signedIn();
+      allow write: if isAdmin() && request.auth.uid == userId;
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+    "name": "history-quest-functions",
+    "private": true,
+    "engines": {
+        "node": "18"
+    },
+    "main": "index.js",
+    "dependencies": {
+        "firebase-admin": "^12.7.0",
+        "firebase-functions": "^6.0.1",
+        "stripe": "^14.25.0"
+    }
+}

@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/Users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/Users/$(request.auth.uid)).data.roles.admin == true;
+    }
+
+    match /Users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId);
+      // Clients may update non-privileged fields only
+      allow update: if isOwner(userId)
+        && !("roles" in request.resource.data)
+        && !("isPremium" in request.resource.data);
+      allow delete: if false;
+    }
+
+    match /Questions/{questionId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /Scores/{scoreId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.score is int
+        && request.resource.data.score >= 0
+        && request.resource.data.category is string;
+      allow update, delete: if false;
+    }
+
+    match /QuizSessions/{sessionId} {
+      allow read, create, update, delete: if signedIn();
+    }
+
+    // Username reservation (unique): doc id is usernameLower
+    match /Usernames/{uname} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+  }
+}
