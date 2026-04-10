@@ -1,0 +1,26 @@
+[
+  {
+    "text": "Which city is the capital of Canada?",
+    "options": ["Toronto", "Ottawa", "Montreal", "Vancouver"],
+    "correctIndex": 1,
+    "category": "Geography",
+    "categoryId": "geography",
+    "subCategory": "capitals",
+    "difficulty": "easy",
+    "explanation": "Ottawa is the capital city of Canada.",
+    "roast": "That answer got lost somewhere between provinces.",
+    "imageUrl": ""
+  },
+  {
+    "text": "Who was the first President of the United States?",
+    "options": ["Thomas Jefferson", "Abraham Lincoln", "George Washington", "John Adams"],
+    "correctIndex": 2,
+    "category": "History",
+    "categoryId": "history",
+    "subCategory": "famous-figures",
+    "difficulty": "easy",
+    "explanation": "George Washington became the first U.S. president in 1789.",
+    "roast": "The founding fathers are staring in silence.",
+    "imageUrl": ""
+  }
+]

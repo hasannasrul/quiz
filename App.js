@@ -69,7 +69,7 @@ export default function App() {
   if (booting) {
     return (
       <View style={styles.center}>
-        <Text style={styles.title}>History Quest</Text>
+        <Text style={styles.title}>Quiz App</Text>
         <Text style={styles.muted}>Loading…</Text>
         <StatusBar style="light" />
       </View>
@@ -79,7 +79,7 @@ export default function App() {
   if (bootError) {
     return (
       <View style={styles.center}>
-        <Text style={styles.title}>History Quest</Text>
+        <Text style={styles.title}>Quiz App</Text>
         <Text style={styles.error}>{bootError}</Text>
         <Text style={styles.muted}>Check your .env values and restart.</Text>
         <StatusBar style="light" />

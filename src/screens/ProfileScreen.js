@@ -5,16 +5,24 @@ import PrimaryButton from '../components/PrimaryButton';
 import { firebaseAuth } from '../services/firebase';
 import { getUserDoc } from '../services/user';
 import { signOutUser } from '../services/auth';
+import { isAdmin as checkAdmin } from '../services/admin';
+import { getRankForLifetime } from '../utils/progression';
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ navigation }) {
     const [profile, setProfile] = useState(null);
+    const [isAdminUser, setIsAdminUser] = useState(false);
     const user = firebaseAuth.currentUser;
+    const rank = getRankForLifetime(profile?.scores?.lifetime || 0);
 
     useEffect(() => {
         (async () => {
             if (!user) return;
-            const doc = await getUserDoc(user.uid);
+            const [doc, adminStatus] = await Promise.all([
+                getUserDoc(user.uid),
+                checkAdmin(user.uid),
+            ]);
             setProfile(doc);
+            setIsAdminUser(adminStatus);
         })();
     }, [user?.uid]);
 
@@ -25,12 +33,19 @@ export default function ProfileScreen() {
 
             <View style={styles.card}>
                 <Text style={styles.cardTitle}>Stats</Text>
+                <Text style={styles.line}>Rank: {rank.name}</Text>
                 <Text style={styles.line}>High score: {profile?.scores?.highScore ?? 0}</Text>
                 <Text style={styles.line}>Lifetime points: {profile?.scores?.lifetime ?? 0}</Text>
                 <Text style={styles.line}>Daily streak: {profile?.streaks?.daily ?? 0}</Text>
                 <Text style={styles.line}>Premium: {profile?.isPremium ? 'Yes' : 'No'}</Text>
             </View>
 
+            {isAdminUser ? (
+                <>
+                    <PrimaryButton label="Admin tools" onPress={() => navigation.navigate('Admin')} />
+                    <View style={{ height: theme.spacing.sm }} />
+                </>
+            ) : null}
             <PrimaryButton label="Sign out" onPress={signOutUser} />
         </View>
     );

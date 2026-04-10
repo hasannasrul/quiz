@@ -10,7 +10,7 @@ import {
 } from 'firebase/auth';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
-import { ResponseType, makeRedirectUri } from 'expo-auth-session';
+import { ResponseType } from 'expo-auth-session';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { firebaseAuth } from './firebase';
@@ -40,56 +40,39 @@ export function isGoogleAuthConfigured() {
     return hasAny;
 }
 
+export function isExpoGoRuntime() {
+    const appOwnership = Constants.appOwnership;
+    const execEnv = Constants.executionEnvironment;
+    return appOwnership === 'expo' || execEnv === 'storeClient';
+}
+
 export function useGoogleAuthRequest() {
     const appOwnership = Constants.appOwnership;
     const execEnv = Constants.executionEnvironment;
     const isExpoGo = appOwnership === 'expo' || execEnv === 'storeClient';
 
-    const hasPlatformIds = !!ENV.google.androidClientId || !!ENV.google.iosClientId;
-
-    const shouldForceProxy = isExpoGo || !hasPlatformIds;
-
-    if (shouldForceProxy) {
-        // Use the Expo proxy redirect (https://auth.expo.io/...) and a Web/Expo OAuth client id.
-        const clientId = ENV.google.expoClientId || ENV.google.webClientId || undefined;
-        const owner = Constants?.expoConfig?.owner || 'anonymous';
-        const slug = Constants?.expoConfig?.slug || 'history-quiz';
-        const redirectUri = `https://auth.expo.io/@${owner}/${slug}`;
-
-        console.log('[Google Auth] Using Expo proxy redirect:', redirectUri);
-        console.log('[Google Auth] Client ID:', clientId);
-
-        const [request, response, promptAsync] = Google.useAuthRequest(
-            {
-                clientId,
-                responseType: ResponseType.IdToken,
-                scopes: ['profile', 'email'],
-                selectAccount: true,
-                redirectUri,
-            },
-            { useProxy: true }
-        );
-
-        const promptWithProxy = (options) => {
-            console.log('[Google Auth] Prompting with proxy, redirectUri:', request?.redirectUri);
-            return promptAsync({ ...(options || {}), useProxy: true });
-        };
-
-        return { request, response, promptAsync: promptWithProxy };
-    }
-
-    // In dev-client/standalone builds, prefer platform-specific client IDs.
-    const [request, response, promptAsync] = Google.useIdTokenAuthRequest(
+    const [request, response, promptAsync] = Google.useAuthRequest(
         {
-            iosClientId: ENV.google.iosClientId || undefined,
-            androidClientId: ENV.google.androidClientId || undefined,
-            webClientId: ENV.google.webClientId || undefined,
+            expoClientId: ENV.google.expoClientId || ENV.google.webClientId || undefined,
+            iosClientId: ENV.google.iosClientId || ENV.google.expoClientId || ENV.google.webClientId || undefined,
+            androidClientId: ENV.google.androidClientId || ENV.google.expoClientId || ENV.google.webClientId || undefined,
+            webClientId: ENV.google.webClientId || ENV.google.expoClientId || undefined,
+            responseType: ResponseType.IdToken,
             scopes: ['profile', 'email'],
             selectAccount: true,
         },
-        { useProxy: Platform.OS === 'web' }
+        { useProxy: isExpoGo }
     );
-    return { request, response, promptAsync };
+
+    const prompt = (options) => promptAsync({ ...(options || {}), useProxy: isExpoGo });
+    return {
+        request,
+        response,
+        promptAsync: prompt,
+        redirectUri: request?.redirectUri,
+        useProxy: isExpoGo,
+        isExpoGo,
+    };
 }
 
 export async function signInOrLinkWithGoogleIdToken(idToken) {

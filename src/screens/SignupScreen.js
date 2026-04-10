@@ -28,7 +28,7 @@ export default function SignupScreen({ navigation }) {
     return (
         <View style={styles.container}>
             <Text style={styles.h1}>Create account</Text>
-            <Text style={styles.sub}>Start your History Quest.</Text>
+            <Text style={styles.sub}>Start your Quiz App journey.</Text>
 
             {!!error && <Text style={styles.error}>{error}</Text>}
 

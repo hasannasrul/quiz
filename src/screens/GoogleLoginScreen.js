@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import Constants from 'expo-constants';
 import { theme } from '../config/theme';
 import PrimaryButton from '../components/PrimaryButton';
 import {
+    isExpoGoRuntime,
     isGoogleAuthConfigured,
     signInOrLinkWithGoogleIdToken,
     useGoogleAuthRequest,
@@ -14,16 +16,24 @@ export default function GoogleLoginScreen({ navigation }) {
     const [busy, setBusy] = useState(false);
 
     const configured = isGoogleAuthConfigured();
+    const expoGoRuntime = isExpoGoRuntime();
 
     // IMPORTANT: only mount the Google hook if configured, otherwise it throws on Android.
-    const hook = configured ? useGoogleAuthRequest() : null;
+    const hook = configured && !expoGoRuntime ? useGoogleAuthRequest() : null;
     const request = hook?.request;
     const response = hook?.response;
     const promptAsync = hook?.promptAsync;
+    const redirectUri = hook?.redirectUri;
+    const useProxy = !!hook?.useProxy;
+    const isExpoGo = !!hook?.isExpoGo;
     const googleEnabled = useMemo(() => !!request, [request]);
+    const appOwnership = Constants.appOwnership;
+    const execEnv = Constants.executionEnvironment;
+    const runtimeExpoGo = appOwnership === 'expo' || execEnv === 'storeClient';
 
     const debugClientId = ENV.google.expoClientId || ENV.google.webClientId || ENV.google.androidClientId || ENV.google.iosClientId;
-    const debugRedirectUri = request?.redirectUri || hook?.request?.redirectUri;
+    const debugRedirectUri = request?.redirectUri || redirectUri || hook?.request?.redirectUri;
+    const invalidGoogleSetup = configured && !debugClientId;
 
     useEffect(() => {
         (async () => {
@@ -33,7 +43,8 @@ export default function GoogleLoginScreen({ navigation }) {
             console.log('Google auth response:', response);
 
             if (response.type === 'error') {
-                setError(`Auth error: ${response.error?.message || 'Unknown error'}`);
+                const msg = response.error?.message || response.params?.error_description || response.params?.error || 'Unknown error';
+                setError(`Auth error: ${msg}`);
                 return;
             }
 
@@ -85,11 +96,33 @@ export default function GoogleLoginScreen({ navigation }) {
                     </Text>
                 </View>
             ) : null}
+            {expoGoRuntime ? (
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>Google Sign-In needs a development build</Text>
+                    <Text style={styles.cardBody}>
+                        The current Expo Go runtime keeps falling back to `exp://` redirects, which Google rejects.
+                        {'\n'}
+                        For production-grade mobile Google auth, we should move this app to a dev build and wire the native Google Sign-In SDK.
+                    </Text>
+                </View>
+            ) : null}
+            {invalidGoogleSetup ? (
+                <View style={styles.card}>
+                    <Text style={styles.cardTitle}>OAuth setup required</Text>
+                    <Text style={styles.cardBody}>
+                        Google OAuth client ID is missing.
+                        {'\n'}
+                        Add this redirect URI to Google Cloud OAuth credentials:
+                        {'\n'}
+                        {debugRedirectUri || '(redirect uri unavailable)'}
+                    </Text>
+                </View>
+            ) : null}
 
             <PrimaryButton
                 label={busy ? 'Please wait…' : 'Sign in with Google'}
                 onPress={() => (promptAsync ? promptAsync() : null)}
-                disabled={busy || !configured || !googleEnabled}
+                disabled={busy || !configured || !googleEnabled || invalidGoogleSetup || expoGoRuntime}
             />
 
             {configured && !googleEnabled ? (
@@ -99,11 +132,13 @@ export default function GoogleLoginScreen({ navigation }) {
                 </View>
             ) : null}
 
-            {configured && !!debugRedirectUri ? (
+            {configured && !!debugRedirectUri && !expoGoRuntime ? (
                 <View style={styles.card}>
                     <Text style={styles.cardTitle}>Google OAuth debug</Text>
                     <Text style={styles.cardBody}>Client ID: {debugClientId || '(missing)'}</Text>
                     <Text style={styles.cardBody}>Redirect URI: {debugRedirectUri}</Text>
+                    <Text style={styles.cardBody}>Use Proxy: {String(useProxy)}</Text>
+                    <Text style={styles.cardBody}>Expo Go Runtime: {String(isExpoGo || runtimeExpoGo)}</Text>
                     <Text style={styles.cardBody}>
                         If you see “redirect_uri_mismatch”, add the Redirect URI above in Google Cloud Console → Credentials → your OAuth client as an
                         "Authorized redirect URI".

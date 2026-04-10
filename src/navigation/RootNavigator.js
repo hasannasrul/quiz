@@ -11,6 +11,7 @@ import QuizPlayScreen from '../screens/QuizPlayScreen';
 import ResultsScreen from '../screens/ResultsScreen';
 import LeaderboardScreen from '../screens/LeaderboardScreen';
 import SubscriptionScreen from '../screens/SubscriptionScreen';
+import AdminScreen from '../screens/AdminScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -26,7 +27,7 @@ export default function RootNavigator({ user, needsUsername }) {
             >
                 {!user ? (
                     <>
-                        <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'Quiz Royale' }} />
+                        <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'Quiz App' }} />
                         <Stack.Screen name="GoogleLogin" component={GoogleLoginScreen} options={{ title: 'Google' }} />
                         <Stack.Screen name="Signup" component={SignupScreen} options={{ title: 'Create account' }} />
                     </>
@@ -42,13 +43,14 @@ export default function RootNavigator({ user, needsUsername }) {
                         <Stack.Screen
                             name="Home"
                             component={HomeScreen}
-                            options={{ title: 'History Quest' }}
+                            options={{ title: 'Quiz App' }}
                         />
                         <Stack.Screen name="QuizPlay" component={QuizPlayScreen} options={{ title: 'Quiz' }} />
                         <Stack.Screen name="Results" component={ResultsScreen} options={{ title: 'Results' }} />
                         <Stack.Screen name="Leaderboard" component={LeaderboardScreen} options={{ title: 'Leaderboard' }} />
                         <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
                         <Stack.Screen name="Subscription" component={SubscriptionScreen} options={{ title: 'Quest Pass' }} />
+                        <Stack.Screen name="Admin" component={AdminScreen} options={{ title: 'Admin' }} />
                     </>
                 )}
             </Stack.Navigator>

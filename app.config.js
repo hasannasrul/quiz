@@ -2,10 +2,13 @@ import 'dotenv/config';
 
 export default ({ config }) => ({
     ...config,
-    name: 'History Quest',
-    slug: config.slug || 'history-quiz',
+    name: 'Quiz App',
+    owner: process.env.EXPO_OWNER || config.owner,
+    slug: process.env.EXPO_SLUG || config.slug || 'quiz-app',
     extra: {
         ...config.extra,
+        EXPO_OWNER: process.env.EXPO_OWNER || config.owner || '',
+        EXPO_SLUG: process.env.EXPO_SLUG || config.slug || 'quiz-app',
         FIREBASE_API_KEY: process.env.FIREBASE_API_KEY,
         FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN,
         FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,

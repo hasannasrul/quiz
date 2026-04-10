@@ -19,7 +19,7 @@ export async function scheduleDailyQuizReminder() {
     await Notifications.cancelAllScheduledNotificationsAsync();
     await Notifications.scheduleNotificationAsync({
         content: {
-            title: 'History Quest',
+            title: 'Quiz App',
             body: 'Daily quiz is ready. Keep your streak alive!',
         },
         trigger: {

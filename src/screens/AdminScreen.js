@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ScrollView, Alert, Pressable } from 'react-native';
 import { theme } from '../config/theme';
 import PrimaryButton from '../components/PrimaryButton';
 import * as ImagePicker from 'expo-image-picker';
@@ -15,6 +15,7 @@ export default function AdminScreen() {
     const [allowed, setAllowed] = useState(false);
     const [busy, setBusy] = useState(false);
 
+    const [categoryId, setCategoryId] = useState(CATEGORIES[0].id);
     const [text, setText] = useState('');
     const [opt0, setOpt0] = useState('');
     const [opt1, setOpt1] = useState('');
@@ -28,6 +29,14 @@ export default function AdminScreen() {
     const [imageUri, setImageUri] = useState('');
 
     const options = useMemo(() => [opt0, opt1, opt2, opt3].map((s) => s.trim()), [opt0, opt1, opt2, opt3]);
+    const selectedCategory = useMemo(
+        () => CATEGORIES.find((category) => category.id === categoryId) || CATEGORIES[0],
+        [categoryId]
+    );
+
+    useEffect(() => {
+        setSubCategory(selectedCategory.subCategories[0]?.id || '');
+    }, [selectedCategory.id]);
 
     useEffect(() => {
         (async () => {
@@ -62,7 +71,8 @@ export default function AdminScreen() {
                 text: text.trim(),
                 options,
                 correctIndex: ci,
-                category: 'History',
+                category: selectedCategory.firestoreName,
+                categoryId,
                 subCategory,
                 difficulty,
                 explanation: explanation.trim(),
@@ -127,10 +137,42 @@ export default function AdminScreen() {
     return (
         <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
             <Text style={styles.h1}>Admin panel</Text>
-            <Text style={styles.sub}>Add/edit questions (History only for now).</Text>
+            <Text style={styles.sub}>Quick import guidance plus a lightweight one-question entry form.</Text>
+
+            <View style={styles.infoCard}>
+                <Text style={styles.infoTitle}>Bulk import workflow</Text>
+                <Text style={styles.infoText}>Edit `data/questions.sample.csv` or a larger CSV, then run the importer from the `functions` folder with your Firebase service account JSON.</Text>
+                <Text style={styles.infoText}>Required columns: text, optionA-D, correctIndex, category, categoryId, subCategory, difficulty.</Text>
+            </View>
 
             <PrimaryButton label={busy ? 'Please wait…' : 'Seed sample questions'} onPress={onSeed} disabled={busy} />
             <View style={{ height: theme.spacing.md }} />
+
+            <Text style={styles.label}>Category</Text>
+            <View style={styles.pillRow}>
+                {CATEGORIES.map((category) => (
+                    <Pressable
+                        key={category.id}
+                        onPress={() => setCategoryId(category.id)}
+                        style={[styles.pill, categoryId === category.id && styles.pillActive]}
+                    >
+                        <Text style={styles.pillText}>{category.name}</Text>
+                    </Pressable>
+                ))}
+            </View>
+
+            <Text style={styles.label}>Sub-category</Text>
+            <View style={styles.pillRow}>
+                {selectedCategory.subCategories.map((item) => (
+                    <Pressable
+                        key={item.id}
+                        onPress={() => setSubCategory(item.id)}
+                        style={[styles.pill, subCategory === item.id && styles.pillActive]}
+                    >
+                        <Text style={styles.pillText}>{item.name}</Text>
+                    </Pressable>
+                ))}
+            </View>
 
             <TextInput value={text} onChangeText={setText} placeholder="Question text" placeholderTextColor={theme.colors.muted} style={styles.input} />
             <TextInput value={opt0} onChangeText={setOpt0} placeholder="Option A" placeholderTextColor={theme.colors.muted} style={styles.input} />
@@ -138,7 +180,6 @@ export default function AdminScreen() {
             <TextInput value={opt2} onChangeText={setOpt2} placeholder="Option C" placeholderTextColor={theme.colors.muted} style={styles.input} />
             <TextInput value={opt3} onChangeText={setOpt3} placeholder="Option D" placeholderTextColor={theme.colors.muted} style={styles.input} />
             <TextInput value={correctIndex} onChangeText={setCorrectIndex} placeholder="Correct index (0..3)" placeholderTextColor={theme.colors.muted} style={styles.input} keyboardType="number-pad" />
-            <TextInput value={subCategory} onChangeText={setSubCategory} placeholder="subCategory (ancient/world-wars/famous-figures)" placeholderTextColor={theme.colors.muted} style={styles.input} />
             <TextInput value={difficulty} onChangeText={setDifficulty} placeholder="difficulty (easy/medium/hard)" placeholderTextColor={theme.colors.muted} style={styles.input} />
             <TextInput value={explanation} onChangeText={setExplanation} placeholder="Explanation" placeholderTextColor={theme.colors.muted} style={[styles.input, { height: 90 }]} multiline />
             <TextInput value={roast} onChangeText={setRoast} placeholder="Roast text (shown on wrong answer)" placeholderTextColor={theme.colors.muted} style={[styles.input, { height: 70 }]} multiline />
@@ -154,6 +195,43 @@ const styles = StyleSheet.create({
     container: { flex: 1, padding: theme.spacing.lg },
     h1: { color: theme.colors.text, fontSize: 24, fontWeight: '900' },
     sub: { color: theme.colors.muted, marginTop: 8, marginBottom: theme.spacing.lg },
+    infoCard: {
+        backgroundColor: theme.colors.card,
+        borderRadius: theme.radius.lg,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+        padding: theme.spacing.md,
+        marginBottom: theme.spacing.lg,
+    },
+    infoTitle: { color: theme.colors.text, fontWeight: '900', marginBottom: 8 },
+    infoText: { color: theme.colors.muted, lineHeight: 19, marginBottom: 6 },
+    label: {
+        color: theme.colors.text,
+        fontWeight: '800',
+        marginBottom: 8,
+    },
+    pillRow: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+        marginBottom: theme.spacing.md,
+    },
+    pill: {
+        backgroundColor: theme.colors.card,
+        borderRadius: 999,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+    },
+    pillActive: {
+        borderColor: theme.colors.primary,
+        backgroundColor: theme.colors.cardAlt,
+    },
+    pillText: {
+        color: theme.colors.text,
+        fontWeight: '700',
+    },
     input: {
         backgroundColor: theme.colors.card,
         borderRadius: theme.radius.md,

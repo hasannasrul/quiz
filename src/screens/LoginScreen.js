@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, Pressable } from 'react-native';
 import { theme } from '../config/theme';
 import PrimaryButton from '../components/PrimaryButton';
-import { isGoogleAuthConfigured, signInEmail, signInGuest } from '../services/auth';
+import { isExpoGoRuntime, isGoogleAuthConfigured, signInEmail, signInGuest } from '../services/auth';
 
 export default function LoginScreen({ navigation }) {
     const [error, setError] = useState('');
@@ -10,6 +10,7 @@ export default function LoginScreen({ navigation }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const googleReady = isGoogleAuthConfigured();
+    const expoGoRuntime = isExpoGoRuntime();
 
     async function onEmailLogin() {
         try {
@@ -43,7 +44,7 @@ export default function LoginScreen({ navigation }) {
         >
             <View style={styles.hero}>
                 <Text style={styles.eyebrow}>WELCOME TO THE QUIZ ARENA</Text>
-                <Text style={styles.h1}>Quiz Royale</Text>
+                <Text style={styles.h1}>Quiz App</Text>
                 <Text style={styles.sub}>Play daily free quizzes, climb leaderboards, and unlock new adventure tracks.</Text>
             </View>
 
@@ -72,9 +73,9 @@ export default function LoginScreen({ navigation }) {
             </View>
 
             <PrimaryButton
-                label={busy ? 'Please wait...' : 'Continue with Google'}
+                label={busy ? 'Please wait...' : expoGoRuntime ? 'Google Sign-In requires dev build' : 'Continue with Google'}
                 onPress={() => navigation.navigate('GoogleLogin')}
-                disabled={busy || !googleReady}
+                disabled={busy || !googleReady || expoGoRuntime}
             />
             <View style={{ height: theme.spacing.sm }} />
             <PrimaryButton label={busy ? 'Entering...' : 'Play as Guest'} onPress={onGuest} disabled={busy} />
@@ -87,6 +88,15 @@ export default function LoginScreen({ navigation }) {
                 <Text style={styles.noteTitle}>Tonight's MVP</Text>
                 <Text style={styles.note}>Free daily quiz, guest mode, category runs, leaderboards, and the first version of Quest Pass.</Text>
             </View>
+
+            {expoGoRuntime ? (
+                <View style={styles.noteCard}>
+                    <Text style={styles.noteTitle}>Google on mobile</Text>
+                    <Text style={styles.note}>
+                        Expo Go does not reliably support the production Google sign-in flow. Use guest/email for now, or we can switch this project to a development build next.
+                    </Text>
+                </View>
+            ) : null}
         </ScrollView>
     );
 }

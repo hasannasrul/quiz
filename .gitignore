@@ -34,6 +34,7 @@ yarn-error.*
 .env*.local
 .env
 
+firebase/history-quiz-d19ab-firebase-adminsdk-fbsvc-b9327d826c.json
 
 # typescript
 *.tsbuildinfo

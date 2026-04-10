@@ -9,6 +9,10 @@ function read(key, fallback = '') {
 }
 
 export const ENV = {
+    expo: {
+        owner: read('EXPO_OWNER'),
+        slug: read('EXPO_SLUG', 'quiz-app'),
+    },
     firebase: {
         apiKey: read('FIREBASE_API_KEY'),
         authDomain: read('FIREBASE_AUTH_DOMAIN'),

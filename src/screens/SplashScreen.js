@@ -8,7 +8,7 @@ export default function SplashScreen() {
             <View style={styles.badge}>
                 <Text style={styles.badgeText}>BRAIN BATTLE</Text>
             </View>
-            <Text style={styles.title}>Quiz Royale</Text>
+            <Text style={styles.title}>Quiz App</Text>
             <Text style={styles.subtitle}>
                 Daily streaks, category battles, adventure runs, and leaderboard climbs.
             </Text>

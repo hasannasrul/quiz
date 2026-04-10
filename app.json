@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "history-quiz",
-    "slug": "history-quiz",
+    "name": "Quiz App",
+    "slug": "quiz-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
